@@ -22,8 +22,8 @@ class ScientificCalculator:
 
         description = (
             "Perform basic calculations: addition, subtraction, division.\n"
-            "Use 'C' to clear the current input and 'AC' to reset the calculator.\n"
-            "Press '=' to see the result of your operations."
+            "Use 'C' to clear the current input, 'AC' to reset, and '+/-' to change sign.\n"
+            "Supports floating-point operations up to 3 decimal places."
         )
         description_label = tk.Label(header_frame, text=description, font=("Arial", 12), bg="orange", justify="center")
         description_label.pack()
@@ -38,18 +38,19 @@ class ScientificCalculator:
             '7', '8', '9', '/',
             '4', '5', '6', '-',
             '1', '2', '3', '+',
-            '0', '.', 'C', 'AC',
-            '='
+            '0', '.', '+/-', 'C',
+            '=', 'AC', '', ''
         ]
         button_frame = tk.Frame(self.root)
         button_frame.pack(expand=True, fill="both")
 
         for i, label in enumerate(buttons):
-            btn = tk.Button(
-                button_frame, text=label, font=("Arial", 18), bg="lightgray",
-                command=lambda lbl=label: self.button_click(lbl)
-            )
-            btn.grid(row=i // 4, column=i % 4, sticky="nsew", padx=5, pady=5)
+            if label:  # Only add non-empty buttons
+                btn = tk.Button(
+                    button_frame, text=label, font=("Arial", 18), bg="lightgray",
+                    command=lambda lbl=label: self.button_click(lbl)
+                )
+                btn.grid(row=i // 4, column=i % 4, sticky="nsew", padx=5, pady=5)
 
         for i in range(5):
             button_frame.rowconfigure(i, weight=1)
@@ -60,6 +61,8 @@ class ScientificCalculator:
             self.clear_current()
         elif label == "AC":
             self.clear_all()
+        elif label == "+/-":
+            self.toggle_sign()
         elif label == "=":
             self.perform_calculation()
         elif label in {"+", "-", "/"}:
@@ -74,12 +77,19 @@ class ScientificCalculator:
         current_text = self.display.get()
         if input_value == "." and "." in current_text:
             return  # Prevent multiple decimals
-        if len(current_text) >= 8:
+        if len(current_text.replace(".", "")) >= 8:
             return  # Prevent exceeding 8 digits
 
         if current_text == "0" and input_value != ".":
             self.display.delete(0, tk.END)
         self.display.insert(tk.END, input_value)
+
+    def toggle_sign(self):
+        current_text = self.display.get()
+        if current_text.startswith("-"):
+            self.display.delete(0, 1)  # Remove the negative sign
+        elif current_text != "0":
+            self.display.insert(0, "-")  # Add the negative sign
 
     def set_operator(self, operator):
         if self.last_operator:
@@ -106,12 +116,13 @@ class ScientificCalculator:
             self.reset_calculator()
 
     def display_result(self, result):
-        if len(str(result)) > 8:
+        result_str = f"{result:.3f}".rstrip("0").rstrip(".")  # Limit to 3 decimal places
+        if len(result_str.replace(".", "")) > 8:
             self.display.delete(0, tk.END)
             self.display.insert(0, "ERR")
         else:
             self.display.delete(0, tk.END)
-            self.display.insert(0, f"{result:.8g}")
+            self.display.insert(0, result_str)
         self.clear_display_on_next_digit = True
 
     def clear_current(self):
