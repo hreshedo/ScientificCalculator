@@ -140,6 +140,80 @@ class ScientificCalculator:
         self.last_operator = ""
         self.clear_display_on_next_digit = False
 
+    def button_click(self, label):
+        if label == "C":
+            self.clear_current()
+        elif label == "AC":
+            self.clear_all()
+        elif label == "+/-":
+            self.toggle_sign()
+        elif label == "=":
+            self.perform_calculation()
+        elif label in {"+", "-", "/"}:
+            self.set_operator(label)
+        elif label == "√":  # Add check for square root
+            self.calculate_square_root()
+        else:
+            self.add_digit_or_decimal(label)
+
+     def calculate_square_root(self):
+        try:
+            current_number = float(self.display.get())
+            if current_number < 0:
+                raise ValueError("Cannot calculate the square root of a negative number.")
+            result = math.sqrt(current_number)
+            self.display_result(result)
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+
+     def create_ui(self):
+        self.root = tk.Tk()
+        self.root.title("Scientific Calculator")
+        self.root.geometry("400x600")
+
+        # Header
+        header_frame = tk.Frame(self.root, bg="orange", height=100)
+        header_frame.pack(fill="x")
+        title_label = tk.Label(header_frame, text="Scientific Calculator", font=("Arial", 20, "bold"), bg="orange")
+        title_label.pack(pady=10)
+
+        description = (
+            "Perform basic calculations: addition, subtraction, division.\n"
+            "Use 'C' to clear the current input, 'AC' to reset, and '+/-' to change sign.\n"
+            "Supports floating-point operations up to 3 decimal places.\n"
+            "New: Use '√' for square root!"
+        )
+        description_label = tk.Label(header_frame, text=description, font=("Arial", 12), bg="orange", justify="center")
+        description_label.pack()
+
+        # Display
+        self.display = tk.Entry(self.root, font=("Arial", 24), justify="right")
+        self.display.insert(0, "0")
+        self.display.pack(fill="x", pady=10)
+
+        # Buttons
+        buttons = [
+            '7', '8', '9', '/', 
+            '4', '5', '6', '-', 
+            '1', '2', '3', '+', 
+            '0', '.', '+/-', 'C',
+            '=', 'AC', '√', ''
+        ]
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(expand=True, fill="both")
+
+        for i, label in enumerate(buttons):
+            if label:  # Only add non-empty buttons
+                btn = tk.Button(
+                    button_frame, text=label, font=("Arial", 18), bg="lightgray",
+                    command=lambda lbl=label: self.button_click(lbl)
+                )
+                btn.grid(row=i // 4, column=i % 4, sticky="nsew", padx=5, pady=5)
+
+        for i in range(5):
+            button_frame.rowconfigure(i, weight=1)
+            button_frame.columnconfigure(i % 4, weight=1)
+
     def run(self):
         self.root.mainloop()
 

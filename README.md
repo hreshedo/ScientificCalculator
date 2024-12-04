@@ -37,6 +37,8 @@ the last number entered
  User can click a '+/-' button to change the sign of the number that is currently displayed.
  User can see a decimal point ('.') button on the entry pad to that allows floating point numbers up to 3 places to be entered and operations to be carried out to the maximum number of decimal places entered for any one number."
 
+Mariam Siddiqui:
+Added a square root functionality to the scientific calculator by implementing a new calculate_square_root method. Also updated the UI to include a "√" button for users to calculate the square root of the displayed number.
 
  ***Bugs in python code: I couldn't get the a max on the number of decimal places you could input but once you did the calculation the outout only displayed the 3 decmal places.
 >>>>>>> 288fd891b1462c2a702a057beec16a8ad781713f
