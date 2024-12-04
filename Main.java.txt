@@ -1,0 +1,170 @@
+package org.example;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class Main {
+
+    private JFrame frame;
+    private JTextField display;
+    private double currentNumber = 0; // Stores the current number
+    private double lastResult = 0; // Stores the result of the last operation
+    private String lastOperator = ""; // Stores the last operator pressed
+    private boolean clearDisplayOnNextDigit = false; // Flag to clear display after an operator
+
+    public Main() {
+        createUI();
+    }
+
+    private void createUI() {
+        // Create the main frame
+        frame = new JFrame("Scientific Calculator");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 700);
+        frame.setLayout(new BorderLayout());
+
+        // Create the header panel
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBackground(Color.ORANGE);
+        headerPanel.setLayout(new BorderLayout());
+        headerPanel.setPreferredSize(new Dimension(500, 200));
+
+        JLabel titleLabel = new JLabel("Scientific Calculator", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        JLabel descriptionLabel = new JLabel(
+                "<html><center>Welcome to the Scientific Calculator!<br>" +
+                        "This calculator allows you to perform basic arithmetic and scientific calculations with ease.<br>" +
+                        "Simply enter your numbers, choose an operation, and see the result displayed instantly.<br>" +
+                        "Use the 'C' button to clear the current input, and the 'AC' button to reset everything.<br>" +
+                        "If the result exceeds 8 digits, 'ERR' will be displayed.</center></html>",
+                SwingConstants.CENTER
+        );
+        descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        headerPanel.add(titleLabel, BorderLayout.NORTH);
+        headerPanel.add(descriptionLabel, BorderLayout.CENTER);
+
+        // Calculator panel
+        JPanel calculatorPanel = new JPanel(new BorderLayout());
+
+        // Display field
+        display = new JTextField("0");
+        display.setHorizontalAlignment(JTextField.RIGHT);
+        display.setFont(new Font("Arial", Font.BOLD, 24));
+        display.setEditable(false);
+        calculatorPanel.add(display, BorderLayout.NORTH);
+
+        // Buttons panel
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 4, 10, 10));
+        String[] buttons = {
+                "7", "8", "9", "/",
+                "4", "5", "6", "-",
+                "1", "2", "3", "+",
+                "0", ".", "C", "AC",
+                "=", "", "", ""
+        };
+        for (String label : buttons) {
+            JButton button = new JButton(label);
+            button.setFont(new Font("Arial", Font.BOLD, 18));
+            button.setBackground(Color.LIGHT_GRAY);
+            button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            button.addActionListener(new ButtonClickListener());
+            buttonPanel.add(button);
+        }
+
+        calculatorPanel.add(buttonPanel, BorderLayout.CENTER);
+
+        frame.add(headerPanel, BorderLayout.NORTH);
+        frame.add(calculatorPanel, BorderLayout.CENTER);
+
+        frame.setVisible(true);
+    }
+
+    private class ButtonClickListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String command = ((JButton) e.getSource()).getText();
+            switch (command) {
+                case "C" -> clearCurrent();
+                case "AC" -> clearAll();
+                case "=" -> performCalculation();
+                case "+", "-", "/" -> setOperator(command);
+                default -> addDigitOrDecimal(command);
+            }
+        }
+    }
+
+    private void addDigitOrDecimal(String input) {
+        if (clearDisplayOnNextDigit) {
+            display.setText("0");
+            clearDisplayOnNextDigit = false;
+        }
+        String currentText = display.getText();
+        if (input.equals(".") && currentText.contains(".")) return; // Prevent multiple decimals
+        if (currentText.length() >= 8) return; // Prevent exceeding 8 digits
+
+        if (currentText.equals("0") && !input.equals(".")) {
+            display.setText(input); // Replace leading zero
+        } else {
+            display.setText(currentText + input);
+        }
+    }
+
+    private void setOperator(String operator) {
+        if (!lastOperator.isEmpty()) {
+            performCalculation(); // Perform the previous operation before setting a new operator
+        }
+        lastResult = Double.parseDouble(display.getText());
+        lastOperator = operator;
+        clearDisplayOnNextDigit = true;
+    }
+
+    private void performCalculation() {
+        double newNumber = Double.parseDouble(display.getText());
+        switch (lastOperator) {
+            case "+" -> lastResult += newNumber;
+            case "-" -> lastResult -= newNumber;
+            case "/" -> {
+                if (newNumber == 0) {
+                    display.setText("ERR");
+                    resetCalculator();
+                    return;
+                }
+                lastResult /= newNumber;
+            }
+        }
+        displayResult(lastResult);
+        lastOperator = ""; // Reset operator after calculation
+    }
+
+    private void displayResult(double result) {
+        if (Double.toString(result).length() > 8) {
+            display.setText("ERR");
+        } else {
+            display.setText(String.format("%.8g", result));
+        }
+        clearDisplayOnNextDigit = true;
+    }
+
+    private void clearCurrent() {
+        display.setText("0");
+    }
+
+    private void clearAll() {
+        display.setText("0");
+        lastResult = 0;
+        currentNumber = 0;
+        lastOperator = "";
+    }
+
+    private void resetCalculator() {
+        lastResult = 0;
+        currentNumber = 0;
+        lastOperator = "";
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Main::new);
+    }
+}
