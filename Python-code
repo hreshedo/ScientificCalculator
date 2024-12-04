@@ -1,0 +1,137 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class ScientificCalculator:
+    def __init__(self):
+        self.current_number = 0
+        self.last_result = 0
+        self.last_operator = ""
+        self.clear_display_on_next_digit = False
+        self.create_ui()
+
+    def create_ui(self):
+        self.root = tk.Tk()
+        self.root.title("Scientific Calculator")
+        self.root.geometry("400x600")
+
+        # Header
+        header_frame = tk.Frame(self.root, bg="orange", height=100)
+        header_frame.pack(fill="x")
+        title_label = tk.Label(header_frame, text="Scientific Calculator", font=("Arial", 20, "bold"), bg="orange")
+        title_label.pack(pady=10)
+
+        description = (
+            "Perform basic calculations: addition, subtraction, division.\n"
+            "Use 'C' to clear the current input and 'AC' to reset the calculator.\n"
+            "Press '=' to see the result of your operations."
+        )
+        description_label = tk.Label(header_frame, text=description, font=("Arial", 12), bg="orange", justify="center")
+        description_label.pack()
+
+        # Display
+        self.display = tk.Entry(self.root, font=("Arial", 24), justify="right")
+        self.display.insert(0, "0")
+        self.display.pack(fill="x", pady=10)
+
+        # Buttons
+        buttons = [
+            '7', '8', '9', '/',
+            '4', '5', '6', '-',
+            '1', '2', '3', '+',
+            '0', '.', 'C', 'AC',
+            '='
+        ]
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(expand=True, fill="both")
+
+        for i, label in enumerate(buttons):
+            btn = tk.Button(
+                button_frame, text=label, font=("Arial", 18), bg="lightgray",
+                command=lambda lbl=label: self.button_click(lbl)
+            )
+            btn.grid(row=i // 4, column=i % 4, sticky="nsew", padx=5, pady=5)
+
+        for i in range(5):
+            button_frame.rowconfigure(i, weight=1)
+            button_frame.columnconfigure(i % 4, weight=1)
+
+    def button_click(self, label):
+        if label == "C":
+            self.clear_current()
+        elif label == "AC":
+            self.clear_all()
+        elif label == "=":
+            self.perform_calculation()
+        elif label in {"+", "-", "/"}:
+            self.set_operator(label)
+        else:
+            self.add_digit_or_decimal(label)
+
+    def add_digit_or_decimal(self, input_value):
+        if self.clear_display_on_next_digit:
+            self.display.delete(0, tk.END)
+            self.clear_display_on_next_digit = False
+        current_text = self.display.get()
+        if input_value == "." and "." in current_text:
+            return  # Prevent multiple decimals
+        if len(current_text) >= 8:
+            return  # Prevent exceeding 8 digits
+
+        if current_text == "0" and input_value != ".":
+            self.display.delete(0, tk.END)
+        self.display.insert(tk.END, input_value)
+
+    def set_operator(self, operator):
+        if self.last_operator:
+            self.perform_calculation()
+        self.last_result = float(self.display.get())
+        self.last_operator = operator
+        self.clear_display_on_next_digit = True
+
+    def perform_calculation(self):
+        try:
+            new_number = float(self.display.get())
+            if self.last_operator == "+":
+                self.last_result += new_number
+            elif self.last_operator == "-":
+                self.last_result -= new_number
+            elif self.last_operator == "/":
+                if new_number == 0:
+                    raise ZeroDivisionError
+                self.last_result /= new_number
+            self.display_result(self.last_result)
+            self.last_operator = ""
+        except ZeroDivisionError:
+            messagebox.showerror("Error", "Division by zero is not allowed.")
+            self.reset_calculator()
+
+    def display_result(self, result):
+        if len(str(result)) > 8:
+            self.display.delete(0, tk.END)
+            self.display.insert(0, "ERR")
+        else:
+            self.display.delete(0, tk.END)
+            self.display.insert(0, f"{result:.8g}")
+        self.clear_display_on_next_digit = True
+
+    def clear_current(self):
+        self.display.delete(0, tk.END)
+        self.display.insert(0, "0")
+
+    def clear_all(self):
+        self.display.delete(0, tk.END)
+        self.display.insert(0, "0")
+        self.last_result = 0
+        self.last_operator = ""
+
+    def reset_calculator(self):
+        self.last_result = 0
+        self.last_operator = ""
+        self.clear_display_on_next_digit = False
+
+    def run(self):
+        self.root.mainloop()
+
+if __name__ == "__main__":
+    calculator = ScientificCalculator()
+    calculator.run()
